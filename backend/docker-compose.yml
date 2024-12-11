@@ -1,0 +1,22 @@
+# backend/Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies for PyAutoGUI
+RUN apt-get update && apt-get install -y \
+    python3-tk \
+    python3-dev \
+    xvfb \
+    xdotool \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project
+COPY . .
+
+# Use Xvfb for virtual display (for headless environments)
+CMD ["xvfb-run", "-a", "python", "main.py"]

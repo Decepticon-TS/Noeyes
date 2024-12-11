@@ -1,0 +1,204 @@
+# user_activity_simulator/config.py
+from dataclasses import dataclass
+
+@dataclass
+class SimulatorConfig:
+    MIN_TAB_INTERVAL: float = 120
+    MAX_TAB_INTERVAL: float = 180  
+    MIN_MOUSE_MOVE_INTERVAL: float = 60
+    MAX_MOUSE_MOVE_INTERVAL: float = 120
+    MOUSE_MOVEMENT_RANGE: int = 20
+    MAX_ARROW_PRESSES: int = 3
+
+# user_activity_simulator/input_simulators.py
+import random
+import pyautogui
+import platform
+import logging
+pyautogui.FAILSAFE = False
+
+class InputSimulator:
+    
+    @staticmethod
+    def switch_tab():
+        
+        try:
+            current_os = platform.system().lower()
+            
+            if current_os == 'windows': 
+                pyautogui.hotkey('alt', 'tab')
+            elif current_os == 'darwin': # macOS
+                pyautogui.hotkey('command', 'tab')
+            elif current_os == 'linux':
+                pyautogui.hotkey('alt', 'tab')
+            else:
+                logging.warning(f"Unsupported operating system: {current_os}")
+                return False
+            
+            arrow_keys = ['left', 'right', 'up', 'down']
+            num_presses = random.randint(0, 2)
+            
+            for _ in range(num_presses):
+                pyautogui.press(random.choice(arrow_keys))
+                
+        except Exception as e:
+            logging.error(f"Error in switch_tab: {e}")
+            return False
+    
+    @staticmethod
+    def simulate_mouse_movement(max_range=20):
+        
+        try:
+            current_x, current_y = pyautogui.position()
+            
+            dx = random.randint(-max_range, max_range)
+            dy = random.randint(-max_range, max_range)
+            
+            pyautogui.moveTo(current_x + dx, current_y + dy, duration=0.25)
+            return True
+        except Exception as e:
+            logging.error(f"Error in simulate_mouse_movement: {e}")
+            return False
+
+# user_activity_simulator/core_simulator.py
+import time
+import random
+import threading
+import logging
+import schedule
+from .input_simulators import InputSimulator
+from .config import SimulatorConfig
+
+class UserActivitySimulator:
+
+    def __init__(self, config: SimulatorConfig = None):
+
+        self.config = config or SimulatorConfig()
+        self.is_running = False
+        self.is_paused = False
+        self._scheduler_thread = None
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s: %(message)s'
+        )
+    
+    def _schedule_tasks(self):
+
+        def random_tab_switch():
+            if not self.is_paused:
+                InputSimulator.switch_tab()
+        
+        def random_mouse_move():
+            if not self.is_paused:
+                InputSimulator.simulate_mouse_movement(
+                    max_range=self.config.MOUSE_MOVEMENT_RANGE
+                )
+        
+        schedule.every(
+            random.uniform(
+                self.config.MIN_TAB_INTERVAL, 
+                self.config.MAX_TAB_INTERVAL
+            )
+        ).seconds.do(random_tab_switch)
+        
+        schedule.every(
+            random.uniform(
+                self.config.MIN_MOUSE_INTERVAL,
+                self.config.MAX_MOUSE_INTERVAL
+            )
+        ).seconds.do(random_mouse_move)
+        
+    def start(self):
+ 
+        if not self.is_running:
+            self.is_running = True
+            self.is_paused = False
+            self._schedule_tasks()
+            
+            def run_scheduler():
+                while self.is_running:
+                    schedule.run_pending()
+                    time.sleep(1)
+            
+            self._scheduler_thread = threading.Thread(
+                target=run_scheduler, 
+                daemon=True
+            )
+            self._scheduler_thread.start()
+            logging.info("User activity simulation started.")
+            
+    def pause(self):
+ 
+        if self.is_running:
+            self.is_paused = False
+            logging.info("User activity simulation resumed.")
+            
+    def kill(self):
+
+        self.is_running = False
+        self.is_paused = False
+        
+        if self._scheduler_thread:
+            self._scheduler_thread.join(timeout=2)
+        
+        logging.info("User activity simulation terminated.")
+
+# user_activity_simulator/api_server.py
+from fastapi import FastAPI, HTTPException
+from .core_simulator import UserActivitySimulator
+from .config import SimulatorConfig
+
+class APIServer:
+
+    def __init__(self):
+        self.app = FastAPI(
+            title="User Activity Simulator API",
+            description="API for controlling automated user activity simulation"
+        )
+        self.simulator = UserActivitySimulator()
+        self._setup_routes()
+        
+    def _setup_routes(self):
+
+        @self.app.post("/start")
+        async def start_simulation():
+            try:
+                self.simulator.start()
+                return {"status": "Simulation started successfully"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+        
+        @self.app.post("/pause")
+        async def pause_simulation():
+            try:
+                self.simulator.pause()
+                return {"status": "Simulation paused successfully"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+            
+        @self.app.post("/resume")
+        async def resume_simulation():
+            try:
+                self.simulator.resume()
+                return {"status": "Simulation resumed successfully"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+        
+        @self.app.post("/kill")
+        async def kill_simulation():
+            try:
+                self.simulator.kill()
+                return {"status": "Simulation terminated successfully"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
+# main.py
+import uvicorn
+from user_act_sim.api_server import APIServer
+
+def run_server():
+    server = APIServer()
+    uvicorn.run(server.app, host="0.0.0.0", port=8000)
+
+if __name__ == "__main__":
+    run_server()
