@@ -1,7 +1,6 @@
 // hooks/useBackendService.ts
 import { useState } from 'react';
 import axios from 'axios';
-import { API_CONFIG } from '@/lib/config';
 
 export type ServiceStatus = 'inactive' | 'running' | 'paused';
 
@@ -11,7 +10,7 @@ export function useBackendService() {
 
     const performAction = async (endpoint: string) => {
         try {
-            const response = await axios.post(`${API_CONFIG.BACKEND_BASE_URL}/${endpoint}`);
+            const response = await axios.post(`/api/backend/${endpoint}`);
 
             switch(endpoint) {
                 case 'start': setStatus('running');break

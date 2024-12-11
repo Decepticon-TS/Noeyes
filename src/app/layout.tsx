@@ -8,13 +8,13 @@ import Footer from '@/components/layout/Footer'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#1976d2'
-        }
-    }
-});
+// const theme = createTheme({
+//     palette: {
+//         primary: {
+//             main: '#1976d2'
+//         }
+//     }
+// });
 
 const inter = Inter({
     subsets: ['latin'],
@@ -49,7 +49,7 @@ export default function RootLayout(
         <ClerkProvider>
             <html lang="en" className={`${inter.variable} antialiased`}>
                 <body className="min-h-screen flex flex-col bg-white text-gray-900 font-sans">
-                    <MUIThemeProvider theme={theme}>
+                    <MUIThemeProvider theme={"dark"}>
                         <NextThemeProvider
                             attribute="class"
                             defaultTheme="light"
