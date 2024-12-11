@@ -1,4 +1,5 @@
 # Project Structure
+```
 automated-task-frontend/
 │
 ├── backend/
@@ -64,3 +65,15 @@ automated-task-frontend/
 ├── package.json
 ├── tailwind.config.js
 └── next.config.js
+
+```
+
+install this using:
+- npx create-next-app@latest [your project] --typescript
+- npm install @clerk/nextjs
+- npx shadcn init
+- npm install axios
+- npx shadcn add button
+- npx shadcn add card
+- npx shadcn add toast
+- npm install @mui/material @emotion/react @emotion/styled
