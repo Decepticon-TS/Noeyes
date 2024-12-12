@@ -23,11 +23,10 @@ automated-task-frontend/
 │   │   └── payments/page.tsx                   # Needs to be implemented
 │   │
 │   ├── api/
-│   │   ├── backend/route.ts                    # Needs to be implemented
 │   │   └── webhook/stripe/route.ts             # Done
 │   │
-│   ├── page.tsx                                # (IMP) Needs to be implemented
-│   └── layout.tsx                              # (IMP) Needs to be implemented
+│   ├── page.tsx                                # Done
+│   └── layout.tsx                              # Done
 │
 ├── src/components/
 │   ├── layout/
@@ -47,13 +46,13 @@ automated-task-frontend/
 │       └── Card.tsx                            # Done
 │
 ├── src/lib/
-│   ├── api.ts # Needs to be implemented
-│   ├── config.ts # Done
-│   └── utils.ts # Needs to be implemented
+│   ├── api.ts       # Done
+│   ├── config.ts    # Done
+│   └── utils.ts     # Done
 │
 ├── src/hooks/
 │   ├── useBackendService.ts # Done
-│   └── useSubscription.ts # Needs to be implemented
+│   └── useSubscription.ts   # Done
 │
 ├── public/
 │   ├── images/
